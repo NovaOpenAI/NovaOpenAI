@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Nova AI</title>
+<style>
+/* ====== Styles (same as your previous CSS) ====== */
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Arial,sans-serif;scroll-behavior:smooth;}
+body{display:flex;height:100vh;background:#f2f2f2;transition:0.4s;}
+button,input{outline:none;}
+.sidebar{width:300px;background:linear-gradient(180deg,#f9f9f9,#e6e6e6);color:#333;display:flex;flex-direction:column;padding:20px;box-shadow:2px 0 15px rgba(0,0,0,0.08);transition:0.4s;overflow-y:auto;position:relative;z-index:100;}
+.sidebar h2{text-align:center;margin-bottom:15px;font-size:28px;font-weight:bold;color:#222;text-shadow:1px 1px #fff;}
+.sidebar input{padding:10px;border-radius:12px;border:1px solid #ccc;margin-bottom:15px;font-size:14px;}
+.side-section{margin-bottom:20px;}
+.side-btn{background:rgba(255,255,255,0.9);padding:12px;border-radius:14px;margin-bottom:10px;text-align:left;cursor:pointer;border:1px solid #ddd;color:#333;font-weight:500;display:flex;align-items:center;justify-content:space-between;gap:10px;transition:all 0.3s;box-shadow:0 2px 6px rgba(0,0,0,0.05);}
+.side-btn:hover{background:#fff;transform:translateX(3px);box-shadow:0 6px 12px rgba(0,0,0,0.12);}
+.side-btn.active{background:#222;color:white;box-shadow:0 0 12px #666;transform:translateX(0);}
+.sidebar button.toggle-dark{margin-top:auto;padding:12px;border:none;border-radius:10px;background:#000;color:white;cursor:pointer;transition:all 0.3s;}
+.sidebar button.toggle-dark:hover{background:#333;}
+.main{flex:1;display:flex;flex-direction:column;background:#fff;border-left:1px solid #ddd;border-radius:0 14px 14px 0;overflow:hidden;transition:0.4s;}
+.topbar{padding:15px;font-size:20px;font-weight:bold;text-align:center;border-bottom:1px solid #eee;background:linear-gradient(90deg,#fff,#f1f1f1);color:#222;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 6px rgba(0,0,0,0.05);transition:0.4s;z-index:100;}
+.topbar button{background:#000;color:white;padding:8px 16px;border-radius:10px;border:none;cursor:pointer;transition:0.3s;}
+.topbar button:hover{background:#333;}
+#chat{flex:1;padding:20px;overflow-y:auto;background:#fafafa;transition:0.4s;display:flex;flex-direction:column;gap:10px;}
+.bubble{max-width:70%;padding:14px 18px;border-radius:20px;line-height:1.5;white-space:pre-wrap;word-wrap:break-word;color:#000;box-shadow:0 2px 10px rgba(0,0,0,0.08);opacity:0;transform:translateY(20px);animation:slideIn 0.3s forwards;display:flex;align-items:flex-end;gap:10px;position:relative;transition:all 0.3s;}
+@keyframes slideIn{to{opacity:1;transform:translateY(0);}}
+.user{background:linear-gradient(135deg,#a0eaff,#00b0ff);margin-left:auto;color:#000;box-shadow:0 4px 15px rgba(0,176,255,0.3);}
+.bot{background:linear-gradient(135deg,#f1f1f1,#e0e0e0);border:1px solid #ddd;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+.bubble img,.bubble video{max-width:200px;border-radius:12px;display:block;}
+.bubble:hover{transform:scale(1.02);transition:0.3s;}
+.timestamp{font-size:10px;color:#888;margin-top:4px;}
+.copy-btn{font-size:12px;background:#ccc;border:none;border-radius:6px;padding:3px 6px;cursor:pointer;margin-left:5px;transition:0.2s;}
+.copy-btn:hover{background:#bbb;}
+.typing-dot{width:10px;height:10px;border-radius:50%;background:#888;display:inline-block;margin-right:4px;animation:typing 1s infinite;}
+@keyframes typing{0%{opacity:0.2;}50%{opacity:1;}100%{opacity:0.2;}}
+.input-area{padding:15px;display:flex;gap:10px;border-top:1px solid #eee;background:#fff;transition:0.3s;}
+input.message-input{flex:1;padding:14px;border-radius:14px;border:1px solid #ddd;font-size:16px;color:#000;transition:0.3s;}
+button.send-btn{padding:12px 24px;border:none;border-radius:14px;background:#000;color:white;font-size:16px;cursor:pointer;transition:0.3s;}
+button.send-btn:hover{background:#333;}
+button.file-btn{padding:12px 16px;border:none;border-radius:14px;background:#666;color:white;cursor:pointer;transition:0.3s;}
+button.file-btn:hover{background:#444;}
+#chat::-webkit-scrollbar{width:8px;}
+#chat::-webkit-scrollbar-thumb{background:#ccc;border-radius:4px;}
+#chat::-webkit-scrollbar-track{background:#fafafa;}
+.dark{background:#222;color:white;}
+.dark .sidebar{background:linear-gradient(180deg,#333,#222);color:#fff;}
+.dark .side-btn{background:#444;color:#fff;border-color:#555;}
+.dark .side-btn:hover{background:#555;transform:translateX(3px);}
+.dark .side-btn.active{background:#fff;color:#333;}
+.dark .main{background:#2b2b2b;color:#fff;}
+.dark #chat{background:#1f1f1f;color:#fff;}
+.dark .topbar{background:linear-gradient(90deg,#444,#222);color:#fff;border-bottom:1px solid #555;}
+.dark .bubble.user{background:linear-gradient(135deg,#00b0ff,#0080ff);color:white;box-shadow:0 4px 15px rgba(0,176,255,0.5);}
+.dark .bubble.bot{background:linear-gradient(135deg,#555,#444);color:white;border-color:#555;box-shadow:0 4px 12px rgba(0,0,0,0.3);}
+@media(max-width:768px){body{flex-direction:column;}.sidebar{position:fixed;top:0;left:-100%;width:250px;height:100%;z-index:200;transition:left 0.3s;}.sidebar.show{left:0;}.main{margin-top:60px;border-radius:0;flex:1;display:flex;flex-direction:column;height:calc(100vh - 60px);}.topbar{position:fixed;top:0;width:100%;z-index:100;display:flex;justify-content:space-between;align-items:center;}#chat{padding:10px;flex:1;overflow-y:auto;}.input-area{position:sticky;bottom:0;background:#fff;z-index:101;}.bubble{max-width:90%;}.hamburger{display:block;font-size:28px;cursor:pointer;}}
+.hamburger{display:none;}#newChatBtn {
+  position: relative;
+  z-index: 9999;
+  pointer-events: auto;
+}
+
+</style>
+</head>
+<body>
+<div class="sidebar">
+  <h2>Nova AI</h2>
+  <input id="chatSearch" placeholder="Search chats...">
+  <div class="side-section">
+    <div id="newChatBtn" class="side-btn active" onclick="prepareNewChat()">+ New Chat</div>
+    <div id="chatList"></div>
+  </div>
+  <button class="toggle-dark" onclick="toggleDark()">Toggle Dark Mode</button>
+</div>
+
+<div class="main">
+  <div class="topbar" id="topbar-title">
+    <span class="hamburger" onclick="toggleSidebar()">☰</span>
+    Welcome!
+    <button onclick="exportChat()">Export</button>
+  </div>
+  <div id="chat"></div>
+  <div class="input-area">
+    <input class="message-input" id="input" placeholder="Type a message...">
+    <button class="file-btn" onclick="document.getElementById('fileInput').click()">+ File</button>
+    <input type="file" id="fileInput" style="display:none" onchange="uploadFile(event)">
+    <button class="send-btn" onclick="sendMsg()">Send</button>
+  </div>
+</div>
+
+<!-- ===== JS at the bottom ===== -->
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+  const chatBox = document.getElementById("chat");
+  const chatListEl = document.getElementById("chatList");
+  const topbarTitle = document.getElementById("topbar-title");
+  const inputEl = document.getElementById("input");
+  const searchEl = document.getElementById("chatSearch");
+  const fileInput = document.getElementById("fileInput");
+  const sidebar = document.querySelector('.sidebar');
+  
+  let chats = JSON.parse(localStorage.getItem("nova_chats")||"{}");
+  let currentChat = null;
+  let firstMessageSent = false;
+  
+  inputEl.addEventListener('keydown', e => {
+    if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendMsg(); }
+  });
+  searchEl.addEventListener('input', ()=>renderSidebar());
+  
+  if(Object.keys(chats).length>0){
+    const first = Object.keys(chats)[0]; currentChat=first;
+    renderChat(); topbarTitle.childNodes[1].textContent=first;
+    renderSidebar();
+  }else prepareNewChat();
+  
+  function saveChats(){localStorage.setItem("nova_chats", JSON.stringify(chats));}
+  let dark=false;
+  function toggleDark(){dark=!dark;document.body.classList.toggle("dark",dark);}
+  function toggleSidebar(){sidebar.classList.toggle('show');}
+  
+ function prepareNewChat(){
+  // Generate a unique temporary name
+  let tempName = "New Chat";
+  let counter = 1;
+  while(chats[tempName]) {
+    tempName = "New Chat_" + counter;
+    counter++;
+  }
+
+  chats[tempName] = []; 
+  currentChat = tempName; 
+  firstMessageSent = false; 
+  renderChat();
+  topbarTitle.childNodes[1].textContent = tempName;
+  renderSidebar();
+
+  // Add "Waiting for topic..." bubble
+  const waitDiv = document.createElement("div");
+  waitDiv.className = "bubble bot";
+  waitDiv.textContent = "Waiting for topic...";
+  chatBox.appendChild(waitDiv);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+  
+  function renderSidebar(){
+    chatListEl.innerHTML="";
+    const filter=searchEl.value.toLowerCase();
+    Object.keys(chats).forEach(name=>{
+      if(name.toLowerCase().includes(filter)){
+        const btn=document.createElement("div");
+        btn.className="side-btn"+(name===currentChat?" active":"");
+        btn.textContent=name;
+        const del=document.createElement("span"); del.innerHTML="🗑️"; del.style.cursor="pointer";
+        del.onclick=(e)=>{
+          e.stopPropagation(); 
+          delete chats[name]; 
+          saveChats(); 
+          renderSidebar(); 
+          if(currentChat===name){
+            currentChat = Object.keys(chats)[0] || null;
+            if(currentChat) renderChat();
+            else prepareNewChat();
+          }
+        }
+        btn.appendChild(del);
+        btn.onclick=()=>switchChat(name,btn);
+        chatListEl.appendChild(btn);
+      }
+    });
+  
+    // Add disclaimer
+    if(!document.getElementById("disclaimer")){
+      const disc = document.createElement("div");
+      disc.id = "disclaimer";
+      disc.style.fontSize="12px";
+      disc.style.color="red";
+      disc.style.marginTop="10px";
+      disc.textContent = "Nova AI may have some bugs.";
+      chatListEl.parentNode.appendChild(disc);
+    }
+  }
+  
+  function switchChat(chatName,btnEl){
+    document.querySelectorAll(".side-btn").forEach(b=>b.classList.remove("active"));
+    btnEl.classList.add("active"); 
+    currentChat=chatName;
+    topbarTitle.childNodes[1].textContent=chatName;
+    renderChat(); 
+    firstMessageSent=chats[currentChat].length>0;
+    if(sidebar.classList.contains('show')) sidebar.classList.remove('show');
+  }
+  
+  function renderChat(){
+    chatBox.innerHTML="";
+    if(currentChat && chats[currentChat]) chats[currentChat].forEach(m=>addBubble(m.role,m.text,false));
+  }
+  
+  function addBubble(role,text,save=true){
+    const div=document.createElement("div"); div.className="bubble "+role;
+    if(typeof text==="string") div.textContent=text;
+    else div.appendChild(text);
+    const ts=document.createElement("div"); ts.className="timestamp"; ts.textContent=new Date().toLocaleTimeString();
+    div.appendChild(ts);
+    if(role==="bot"){ 
+      const cp=document.createElement("button"); 
+      cp.textContent="Copy"; cp.className="copy-btn";
+      cp.onclick=()=>{if(typeof text==="string")navigator.clipboard.writeText(text);}
+      div.appendChild(cp);
+    }
+    chatBox.appendChild(div); 
+    chatBox.scrollTop=chatBox.scrollHeight;
+    if(save){chats[currentChat].push({role,text}); saveChats();}
+  }
+  
+  function addTyping(){
+    const container=document.createElement("div"); container.className="bubble bot"; container.id="typing";
+    for(let i=0;i<3;i++){const dot=document.createElement("span"); dot.className="typing-dot"; container.appendChild(dot);}
+    chatBox.appendChild(container); chatBox.scrollTop=chatBox.scrollHeight;
+  }
+  
+  function removeTyping(){const t=document.getElementById("typing"); if(t) t.remove();}
+  
+  async function sendMsg() {
+      const msg = inputEl.value.trim();
+      if (!msg || !currentChat) return;
+      inputEl.value = "";
+  
+      // Remove "Waiting for topic..." if exists
+      const waitBubble = Array.from(chatBox.children).find(c=>c.textContent==="Waiting for topic...");
+      if(waitBubble) waitBubble.remove();
+  
+      addBubble("user", msg);
+  
+      try {
+          addTyping();
+          const chatHistory = chats[currentChat].map(m => ({
+              role: m.role === "user" ? "user" : "assistant",
+              text: m.text
+          }));
+  
+          const res = await fetch("http://localhost:3000/chat", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ chat: chatHistory, message: msg })
+          });
+  
+          const data = await res.json();
+          removeTyping();
+          addBubble("bot", data.reply);
+  
+          // Update chat title if first message
+          if (!firstMessageSent && data.title) {
+              const oldName = currentChat;
+              const newName = data.title;
+              chats[newName] = chats[oldName];
+              delete chats[oldName];
+              currentChat = newName;
+              firstMessageSent = true;
+              saveChats();
+              renderSidebar();
+              topbarTitle.childNodes[1].textContent = newName;
+          } else {
+              firstMessageSent = true;
+          }
+  
+      } catch (err) {
+          removeTyping();
+          addBubble("bot", "AI did not respond. (Error)");
+          console.error(err);
+      }
+  }
+  
+  function uploadFile(e){
+    const file=e.target.files[0]; if(!file) return;
+    let node;
+    if(file.type.startsWith("image/")){ node=document.createElement("img"); node.src=URL.createObjectURL(file);}
+    else if(file.type.startsWith("video/")){ node=document.createElement("video"); node.src=URL.createObjectURL(file); node.controls=true;}
+    addBubble("user",node);
+    e.target.value="";
+  }
+  
+  function exportChat(){
+    if(!currentChat) return;
+    const data=JSON.stringify(chats[currentChat],null,2); 
+    const blob=new Blob([data],{type:"application/json"}); 
+    const url=URL.createObjectURL(blob); 
+    const a=document.createElement("a"); 
+    a.href=url; 
+    a.download=currentChat+".json"; 
+    a.click(); 
+    URL.revokeObjectURL(url);
+  }
+  });
+  </script>  
+</body>
+</html>
